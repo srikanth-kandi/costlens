@@ -38,10 +38,13 @@ function loadSwaggerSpec() {
 const swaggerSpec = loadSwaggerSpec();
 
 // Keep Swagger UI before helmet to avoid CSP issues with the UI assets.
-app.get("/api-docs/swagger.json", (_req, res) => {
-  res.json(swaggerSpec);
-});
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Only serve Swagger in development to avoid serverless cold-start issues.
+if (process.env.NODE_ENV !== "production") {
+  app.get("/api-docs/swagger.json", (_req, res) => {
+    res.json(swaggerSpec);
+  });
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // ─── Security & Middleware ─────────────────────────────────────────────────────
 app.use(helmet());
