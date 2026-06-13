@@ -1,5 +1,15 @@
 import { Request, Response, NextFunction } from "express";
+import { Meeting, Prisma, Project } from "@prisma/client";
 import { prisma } from "../config/database.js";
+import {
+  calculateMeetingCost,
+  MeetingParticipantWithEmployee,
+} from "../utils/meetingCost.js";
+
+type MeetingWithRelations = Meeting & {
+  project: Project | null;
+  participants: MeetingParticipantWithEmployee[];
+};
 
 export async function getMeetings(
   req: Request,
@@ -20,7 +30,7 @@ export async function getMeetings(
     const skip = (parseInt(page, 10) - 1) * parseInt(pageSize, 10);
     const take = parseInt(pageSize, 10);
 
-    const where: any = {};
+    const where: Prisma.MeetingWhereInput = {};
 
     if (search) {
       where.OR = [
@@ -61,12 +71,9 @@ export async function getMeetings(
       prisma.meeting.count({ where }),
     ]);
 
-    const formatted = meetings.map((m) => {
-      const dh = m.durationMinutes / 60;
-      const cost = (m.participants as any[]).reduce(
-        (sum: number, p: any) => sum + p.employee.hourlyRate * dh,
-        0,
-      );
+    const formatted = (meetings as MeetingWithRelations[]).map(
+      (m: MeetingWithRelations) => {
+      const cost = calculateMeetingCost(m.durationMinutes, m.participants);
 
       return {
         id: m.id,
@@ -75,17 +82,18 @@ export async function getMeetings(
         durationMinutes: m.durationMinutes,
         meetingDate: m.meetingDate.toISOString(),
         projectId: m.projectId,
-        projectName: (m as any).project?.name ?? "Unattributed",
-        projectCode: (m as any).project?.code ?? null,
+        projectName: m.project?.name ?? "Unattributed",
+        projectCode: m.project?.code ?? null,
         confidenceScore: m.confidenceScore,
         cost: Math.round(cost),
-        participants: (m.participants as any[]).map((p) => ({
+        participants: m.participants.map((p: MeetingParticipantWithEmployee) => ({
           meetingId: p.meetingId,
           employeeId: p.employeeId,
           employee: p.employee,
         })),
       };
-    });
+    },
+    );
 
     res.json({
       success: true,

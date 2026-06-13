@@ -2,12 +2,46 @@ import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import swaggerUi from "swagger-ui-express";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { corsMiddleware } from "./middleware/cors.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { router } from "./routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
+
+function loadSwaggerSpec() {
+  const workspaceSpecPath = resolve(
+    process.cwd(),
+    "src",
+    "docs",
+    "swagger.json",
+  );
+  const monorepoSpecPath = resolve(
+    process.cwd(),
+    "apps",
+    "backend",
+    "src",
+    "docs",
+    "swagger.json",
+  );
+
+  try {
+    return JSON.parse(readFileSync(workspaceSpecPath, "utf-8"));
+  } catch {
+    return JSON.parse(readFileSync(monorepoSpecPath, "utf-8"));
+  }
+}
+
+const swaggerSpec = loadSwaggerSpec();
+
+// Keep Swagger UI before helmet to avoid CSP issues with the UI assets.
+app.get("/api-docs/swagger.json", (_req, res) => {
+  res.json(swaggerSpec);
+});
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ─── Security & Middleware ─────────────────────────────────────────────────────
 app.use(helmet());

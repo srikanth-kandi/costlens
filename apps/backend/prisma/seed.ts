@@ -1,5 +1,7 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import { Employee, MeetingParticipant, PrismaClient } from "@prisma/client";
+
+type MeetingParticipantWithEmployee = MeetingParticipant & { employee: Employee };
 
 const prisma = new PrismaClient();
 
@@ -341,8 +343,9 @@ async function main() {
     });
 
     const durationHours = meeting.durationMinutes / 60;
-    const cost = participants.reduce(
-      (sum, p) => sum + p.employee.hourlyRate * durationHours,
+    const cost = (participants as MeetingParticipantWithEmployee[]).reduce(
+      (sum: number, p: MeetingParticipantWithEmployee) =>
+        sum + p.employee.hourlyRate * durationHours,
       0,
     );
 

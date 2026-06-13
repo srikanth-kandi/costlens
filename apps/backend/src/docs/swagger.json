@@ -1,0 +1,527 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CostLens AI Backend API",
+    "description": "API documentation for the CostLens AI HR Cost Intelligence backend.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    { "name": "System", "description": "Service health and metadata" },
+    { "name": "Dashboard", "description": "Executive KPI and summary data" },
+    { "name": "Projects", "description": "Project analytics and drill-down" },
+    { "name": "Meetings", "description": "Meeting list and filtering" },
+    { "name": "Anomalies", "description": "Anomaly and risk signals" },
+    { "name": "Attribution", "description": "AI project attribution and cost calculation" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy"
+          }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get dashboard data",
+        "responses": {
+          "200": {
+            "description": "Dashboard response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDashboard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List projects",
+        "responses": {
+          "200": {
+            "description": "Projects response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseProjectArray"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{id}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Get project by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project detail response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseProjectDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      }
+    },
+    "/api/meetings": {
+      "get": {
+        "tags": ["Meetings"],
+        "summary": "List meetings with filters",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated meetings response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMeetingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/anomalies": {
+      "get": {
+        "tags": ["Anomalies"],
+        "summary": "List anomalies",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AnomalyType"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AnomalySeverity"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anomalies response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAnomalyArray"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attribution": {
+      "post": {
+        "tags": ["Attribution"],
+        "summary": "Attribute a meeting to a project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttributionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribution response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAttributionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          }
+        }
+      }
+    },
+    "/api/calculate-cost": {
+      "post": {
+        "tags": ["Attribution"],
+        "summary": "Calculate meeting cost from attendees and duration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CostCalculationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cost calculation response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCostCalculationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProjectStatus": {
+        "type": "string",
+        "enum": ["active", "on-hold", "completed", "at-risk"]
+      },
+      "AnomalyType": {
+        "type": "string",
+        "enum": [
+          "budget_exceeded",
+          "low_confidence",
+          "expensive_meeting",
+          "resource_imbalance",
+          "budget_risk"
+        ]
+      },
+      "AnomalySeverity": {
+        "type": "string",
+        "enum": ["low", "medium", "high", "critical"]
+      },
+      "Employee": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "designation": { "type": "string" },
+          "department": { "type": "string" },
+          "hourlyRate": { "type": "number" }
+        }
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "code": { "type": "string" },
+          "description": { "type": "string" },
+          "budget": { "type": "number" },
+          "status": { "$ref": "#/components/schemas/ProjectStatus" },
+          "teamSize": { "type": "integer", "nullable": true },
+          "startDate": { "type": "string", "nullable": true },
+          "endDate": { "type": "string", "nullable": true }
+        }
+      },
+      "MeetingParticipant": {
+        "type": "object",
+        "properties": {
+          "meetingId": { "type": "integer" },
+          "employeeId": { "type": "integer" },
+          "employee": { "$ref": "#/components/schemas/Employee" }
+        }
+      },
+      "Meeting": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "durationMinutes": { "type": "integer" },
+          "meetingDate": { "type": "string" },
+          "projectId": { "type": "integer", "nullable": true },
+          "projectName": { "type": "string" },
+          "confidenceScore": { "type": "number" },
+          "cost": { "type": "number", "nullable": true },
+          "participants": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MeetingParticipant" }
+          }
+        }
+      },
+      "CostSummary": {
+        "type": "object",
+        "properties": {
+          "projectId": { "type": "integer" },
+          "projectName": { "type": "string" },
+          "projectCode": { "type": "string" },
+          "totalCost": { "type": "number" },
+          "meetingCount": { "type": "integer" },
+          "hoursSpent": { "type": "number" },
+          "budget": { "type": "number" },
+          "budgetUtilization": { "type": "number" },
+          "status": { "$ref": "#/components/schemas/ProjectStatus" }
+        }
+      },
+      "Anomaly": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "type": { "$ref": "#/components/schemas/AnomalyType" },
+          "severity": { "$ref": "#/components/schemas/AnomalySeverity" },
+          "description": { "type": "string" },
+          "projectId": { "type": "integer", "nullable": true },
+          "projectName": { "type": "string", "nullable": true },
+          "meetingId": { "type": "integer", "nullable": true },
+          "meetingTitle": { "type": "string", "nullable": true },
+          "amount": { "type": "number", "nullable": true },
+          "detectedAt": { "type": "string" }
+        }
+      },
+      "DashboardKPIs": {
+        "type": "object",
+        "properties": {
+          "totalHRCost": { "type": "number" },
+          "totalMeetings": { "type": "integer" },
+          "activeProjects": { "type": "integer" },
+          "costOverruns": { "type": "integer" },
+          "costGrowth": { "type": "number" },
+          "meetingGrowth": { "type": "number" }
+        }
+      },
+      "DepartmentCost": {
+        "type": "object",
+        "properties": {
+          "department": { "type": "string" },
+          "cost": { "type": "number" },
+          "employees": { "type": "integer" }
+        }
+      },
+      "WeeklyCostTrend": {
+        "type": "object",
+        "properties": {
+          "week": { "type": "string" },
+          "cost": { "type": "number" },
+          "meetings": { "type": "integer" }
+        }
+      },
+      "DashboardData": {
+        "type": "object",
+        "properties": {
+          "kpis": { "$ref": "#/components/schemas/DashboardKPIs" },
+          "costByProject": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CostSummary" }
+          },
+          "costByDepartment": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DepartmentCost" }
+          },
+          "weeklyTrend": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WeeklyCostTrend" }
+          },
+          "recentMeetings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Meeting" }
+          },
+          "recentAnomalies": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Anomaly" }
+          }
+        }
+      },
+      "AttributionRequest": {
+        "type": "object",
+        "required": ["title", "description", "attendees"],
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "attendees": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "AttributionResult": {
+        "type": "object",
+        "properties": {
+          "project": { "type": "string" },
+          "projectId": { "type": "integer", "nullable": true },
+          "confidence": { "type": "number" },
+          "reason": { "type": "string" }
+        }
+      },
+      "CostCalculationRequest": {
+        "type": "object",
+        "required": ["employeeIds", "durationMinutes"],
+        "properties": {
+          "employeeIds": {
+            "type": "array",
+            "items": { "type": "integer" }
+          },
+          "durationMinutes": { "type": "number" }
+        }
+      },
+      "CostCalculationBreakdown": {
+        "type": "object",
+        "properties": {
+          "employeeId": { "type": "integer" },
+          "employeeName": { "type": "string" },
+          "hourlyRate": { "type": "number" },
+          "cost": { "type": "number" }
+        }
+      },
+      "CostCalculationResult": {
+        "type": "object",
+        "properties": {
+          "totalCost": { "type": "number" },
+          "breakdown": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CostCalculationBreakdown" }
+          },
+          "durationHours": { "type": "number" }
+        }
+      },
+      "ApiResponseDashboard": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/DashboardData" }
+        }
+      },
+      "ApiResponseProjectArray": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Project" }
+          }
+        }
+      },
+      "ApiResponseProjectDetail": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "type": "object" }
+        }
+      },
+      "PaginatedMeetingsResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Meeting" }
+          },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "pageSize": { "type": "integer" }
+        }
+      },
+      "ApiResponseAnomalyArray": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Anomaly" }
+          }
+        }
+      },
+      "ApiResponseAttributionResult": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/AttributionResult" }
+        }
+      },
+      "ApiResponseCostCalculationResult": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/CostCalculationResult" }
+        }
+      }
+    }
+  }
+}

@@ -8,7 +8,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAttributeMeeting } from "@/hooks/useApi";
-import { mockEmployees, mockProjects } from "@/data/mockData";
+import { mockProjects } from "@/data/mockData";
 import {
   Card,
   CardContent,
@@ -21,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
 
 const EXAMPLE_MEETINGS = [
   {

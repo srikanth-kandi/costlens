@@ -1,5 +1,33 @@
 import { Request, Response, NextFunction } from "express";
+import { Anomaly, Employee, Meeting, MeetingParticipant, Project } from "@prisma/client";
 import { prisma } from "../config/database.js";
+import {
+  calculateMeetingCost,
+  MeetingParticipantWithEmployee,
+  minutesToHours,
+  roundToOneDecimal,
+} from "../utils/meetingCost.js";
+
+type MeetingWithProjectAndParticipants = Meeting & {
+  project: Project | null;
+  participants: MeetingParticipantWithEmployee[];
+};
+
+type AnomalyWithRelations = Anomaly & {
+  project: Project | null;
+  meeting: Meeting | null;
+};
+
+type CostByProjectItem = {
+  id: number;
+  name: string;
+  code: string;
+  budget: number;
+  status: string;
+  totalCost: number;
+  meetingCount: number;
+  hoursSpent: number;
+};
 
 export async function getDashboard(
   req: Request,
@@ -16,9 +44,7 @@ export async function getDashboard(
       allMeetings,
     ] = await Promise.all([
       prisma.meeting.count(),
-      prisma.project.findMany({
-        include: { costSummary: true } as any,
-      }),
+      prisma.project.findMany(),
       prisma.meeting.findMany({
         take: 10,
         orderBy: { meetingDate: "desc" },
@@ -39,19 +65,7 @@ export async function getDashboard(
 
     // Calculate total HR cost from all meetings
     let totalHRCost = 0;
-    const costByProject: Record<
-      number,
-      {
-        id: number;
-        name: string;
-        code: string;
-        budget: number;
-        status: string;
-        totalCost: number;
-        meetingCount: number;
-        hoursSpent: number;
-      }
-    > = {};
+    const costByProject: Record<number, CostByProjectItem> = {};
 
     for (const project of projects) {
       costByProject[project.id] = {
@@ -66,11 +80,11 @@ export async function getDashboard(
       };
     }
 
-    for (const meeting of allMeetings) {
-      const durationHours = meeting.durationMinutes / 60;
-      const cost = meeting.participants.reduce(
-        (sum: number, p: any) => sum + p.employee.hourlyRate * durationHours,
-        0,
+    for (const meeting of allMeetings as MeetingWithProjectAndParticipants[]) {
+      const durationHours = minutesToHours(meeting.durationMinutes);
+      const cost = calculateMeetingCost(
+        meeting.durationMinutes,
+        meeting.participants,
       );
       totalHRCost += cost;
       if (meeting.projectId && costByProject[meeting.projectId]) {
@@ -80,13 +94,13 @@ export async function getDashboard(
       }
     }
 
-    const activeProjects = projects.filter((p) => p.status === "active").length;
+    const activeProjects = projects.filter((p: Project) => p.status === "active").length;
     const costOverruns = Object.values(costByProject).filter(
       (p) => p.totalCost > p.budget,
     ).length;
 
     // Weekly cost trend (last 8 weeks)
-    const weeklyTrend = [];
+    const weeklyTrend: { week: string; cost: number; meetings: number }[] = [];
     for (let w = 7; w >= 0; w--) {
       const weekStart = new Date();
       weekStart.setDate(weekStart.getDate() - w * 7 - 6);
@@ -95,17 +109,16 @@ export async function getDashboard(
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
 
-      const weekMeetings = allMeetings.filter((m) => {
+      const weekMeetings = (allMeetings as MeetingWithProjectAndParticipants[]).filter((m: MeetingWithProjectAndParticipants) => {
         const d = new Date(m.meetingDate);
         return d >= weekStart && d <= weekEnd;
       });
 
       let weekCost = 0;
       for (const meeting of weekMeetings) {
-        const dh = meeting.durationMinutes / 60;
-        weekCost += meeting.participants.reduce(
-          (sum: number, p: any) => sum + p.employee.hourlyRate * dh,
-          0,
+        weekCost += calculateMeetingCost(
+          meeting.durationMinutes,
+          meeting.participants,
         );
       }
 
@@ -119,9 +132,9 @@ export async function getDashboard(
     // Cost by department
     const deptCosts: Record<string, { cost: number; employees: Set<number> }> =
       {};
-    for (const meeting of allMeetings) {
-      const dh = meeting.durationMinutes / 60;
-      for (const p of meeting.participants as any[]) {
+    for (const meeting of allMeetings as MeetingWithProjectAndParticipants[]) {
+      const dh = minutesToHours(meeting.durationMinutes);
+      for (const p of meeting.participants) {
         const dept = p.employee.department;
         if (!deptCosts[dept])
           deptCosts[dept] = { cost: 0, employees: new Set() };
@@ -138,32 +151,32 @@ export async function getDashboard(
       }),
     );
 
-    const formattedMeetings = recentMeetings.map((m) => ({
+    const formattedMeetings = (recentMeetings as MeetingWithProjectAndParticipants[]).map((m: MeetingWithProjectAndParticipants) => ({
       id: m.id,
       title: m.title,
       description: m.description,
       durationMinutes: m.durationMinutes,
       meetingDate: m.meetingDate.toISOString(),
       projectId: m.projectId,
-      projectName: (m as any).project?.name ?? "Unattributed",
+      projectName: m.project?.name ?? "Unattributed",
       confidenceScore: m.confidenceScore,
       cost: m.cost ?? 0,
-      participants: (m as any).participants.map((p: any) => ({
+      participants: m.participants.map((p: MeetingParticipantWithEmployee) => ({
         meetingId: p.meetingId,
         employeeId: p.employeeId,
         employee: p.employee,
       })),
     }));
 
-    const formattedAnomalies = recentAnomalies.map((a) => ({
+    const formattedAnomalies = (recentAnomalies as AnomalyWithRelations[]).map((a: AnomalyWithRelations) => ({
       id: a.id,
       type: a.type,
       severity: a.severity,
       description: a.description,
       projectId: a.projectId,
-      projectName: (a as any).project?.name,
+      projectName: a.project?.name,
       meetingId: a.meetingId,
-      meetingTitle: (a as any).meeting?.title,
+      meetingTitle: a.meeting?.title,
       amount: a.amount ?? undefined,
       detectedAt: a.detectedAt.toISOString(),
     }));
@@ -182,7 +195,7 @@ export async function getDashboard(
         costByProject: Object.values(costByProject).map((p) => ({
           ...p,
           totalCost: Math.round(p.totalCost),
-          hoursSpent: Math.round(p.hoursSpent * 10) / 10,
+          hoursSpent: roundToOneDecimal(p.hoursSpent),
           budgetUtilization:
             Math.round((p.totalCost / p.budget) * 100 * 10) / 10,
         })),

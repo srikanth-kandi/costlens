@@ -13,10 +13,7 @@ import { mockAnomalies, mockProjects } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import AnomalyBadge, {
-  SeverityBadge,
-  AnomalyTypeBadge,
-} from "@/components/AnomalyBadge";
+import { SeverityBadge, AnomalyTypeBadge } from "@/components/AnomalyBadge";
 import { formatCurrency, formatRelativeDate } from "@/utils/formatters";
 import type { Anomaly } from "@costlens/shared";
 

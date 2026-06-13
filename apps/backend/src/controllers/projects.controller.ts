@@ -1,5 +1,17 @@
 import { Request, Response, NextFunction } from "express";
+import { Anomaly, Meeting, Project } from "@prisma/client";
 import { prisma } from "../config/database.js";
+import {
+  calculateMeetingCost,
+  MeetingParticipantWithEmployee,
+  minutesToHours,
+  roundToOneDecimal,
+} from "../utils/meetingCost.js";
+
+type ProjectWithRelations = Project & {
+  meetings: (Meeting & { participants: MeetingParticipantWithEmployee[] })[];
+  anomalies: Anomaly[];
+};
 
 export async function getProjects(
   req: Request,
@@ -17,16 +29,15 @@ export async function getProjects(
       orderBy: { name: "asc" },
     });
 
-    const formatted = projects.map((project) => {
+    const formatted = (projects as ProjectWithRelations[]).map(
+      (project: ProjectWithRelations) => {
       let totalCost = 0;
       let hoursSpent = 0;
 
       for (const meeting of project.meetings) {
-        const dh = meeting.durationMinutes / 60;
+        const dh = minutesToHours(meeting.durationMinutes);
         hoursSpent += dh;
-        for (const p of meeting.participants as any[]) {
-          totalCost += p.employee.hourlyRate * dh;
-        }
+        totalCost += calculateMeetingCost(meeting.durationMinutes, meeting.participants);
       }
 
       const budgetUtilization = (totalCost / project.budget) * 100;
@@ -43,11 +54,12 @@ export async function getProjects(
         endDate: project.endDate?.toISOString(),
         totalCost: Math.round(totalCost),
         meetingCount: project.meetings.length,
-        hoursSpent: Math.round(hoursSpent * 10) / 10,
+        hoursSpent: roundToOneDecimal(hoursSpent),
         budgetUtilization: Math.round(budgetUtilization * 10) / 10,
         anomalyCount: project.anomalies.length,
       };
-    });
+    },
+    );
 
     res.json({ success: true, data: formatted });
   } catch (error) {
@@ -95,17 +107,18 @@ export async function getProjectById(
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
 
-      const weekMeetings = project.meetings.filter((m) => {
+      const weekMeetings = (project.meetings as (Meeting & {
+        participants: MeetingParticipantWithEmployee[];
+      })[]).filter((m: Meeting & { participants: MeetingParticipantWithEmployee[] }) => {
         const d = new Date(m.meetingDate);
         return d >= weekStart && d <= weekEnd;
       });
 
       let weekCost = 0;
       for (const meeting of weekMeetings) {
-        const dh = meeting.durationMinutes / 60;
-        weekCost += (meeting.participants as any[]).reduce(
-          (sum: number, p: any) => sum + p.employee.hourlyRate * dh,
-          0,
+        weekCost += calculateMeetingCost(
+          meeting.durationMinutes,
+          meeting.participants,
         );
       }
 
@@ -118,12 +131,12 @@ export async function getProjectById(
 
     let totalCost = 0;
     let hoursSpent = 0;
-    for (const meeting of project.meetings) {
-      const dh = meeting.durationMinutes / 60;
+    for (const meeting of project.meetings as (Meeting & {
+      participants: MeetingParticipantWithEmployee[];
+    })[]) {
+      const dh = minutesToHours(meeting.durationMinutes);
       hoursSpent += dh;
-      for (const p of meeting.participants as any[]) {
-        totalCost += p.employee.hourlyRate * dh;
-      }
+      totalCost += calculateMeetingCost(meeting.durationMinutes, meeting.participants);
     }
 
     res.json({
@@ -133,7 +146,7 @@ export async function getProjectById(
         startDate: project.startDate?.toISOString(),
         endDate: project.endDate?.toISOString(),
         totalCost: Math.round(totalCost),
-        hoursSpent: Math.round(hoursSpent * 10) / 10,
+        hoursSpent: roundToOneDecimal(hoursSpent),
         budgetUtilization:
           Math.round((totalCost / project.budget) * 100 * 10) / 10,
         weeklyTrend,
@@ -141,13 +154,13 @@ export async function getProjectById(
           ...m,
           meetingDate: m.meetingDate.toISOString(),
           cost: m.cost ?? 0,
-          participants: (m.participants as any[]).map((p) => ({
+          participants: (m.participants as MeetingParticipantWithEmployee[]).map((p: MeetingParticipantWithEmployee) => ({
             meetingId: p.meetingId,
             employeeId: p.employeeId,
             employee: p.employee,
           })),
         })),
-        anomalies: project.anomalies.map((a) => ({
+        anomalies: project.anomalies.map((a: Anomaly) => ({
           ...a,
           detectedAt: a.detectedAt.toISOString(),
         })),

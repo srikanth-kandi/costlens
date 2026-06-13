@@ -8,8 +8,6 @@ import {
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -45,7 +43,7 @@ const PIE_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { data: apiData, isLoading, isError } = useDashboard();
+  const { data: apiData, isLoading } = useDashboard();
   const data = apiData ?? mockDashboardData;
 
   return (

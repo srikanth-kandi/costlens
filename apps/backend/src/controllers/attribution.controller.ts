@@ -1,7 +1,15 @@
 import { Request, Response, NextFunction } from "express";
+import { Employee } from "@prisma/client";
 import { prisma } from "../config/database.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ATTRIBUTION_SYSTEM_PROMPT } from "../prompts/attribution.prompt.js";
+
+type AttributionProject = {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+};
 
 let genAI: GoogleGenerativeAI | null = null;
 
@@ -36,7 +44,7 @@ export async function attributeMeeting(
     }
 
     // Fetch available projects for context
-    const projects = await prisma.project.findMany({
+    const projects: AttributionProject[] = await prisma.project.findMany({
       where: { status: { not: "completed" } },
       select: { id: true, name: true, code: true, description: true },
     });
@@ -70,7 +78,7 @@ export async function attributeMeeting(
           };
 
           const matchedProject = projects.find(
-            (p) =>
+            (p: AttributionProject) =>
               p.name.toLowerCase().includes(parsed.project.toLowerCase()) ||
               p.code.toLowerCase() === parsed.project.toLowerCase(),
           );
@@ -128,19 +136,22 @@ export async function calculateCost(
       return;
     }
 
-    const employees = await prisma.employee.findMany({
+    const employees: Employee[] = await prisma.employee.findMany({
       where: { id: { in: employeeIds } },
     });
 
     const durationHours = durationMinutes / 60;
-    const breakdown = employees.map((e) => ({
+    const breakdown = employees.map((e: Employee) => ({
       employeeId: e.id,
       employeeName: e.name,
       hourlyRate: e.hourlyRate,
       cost: Math.round(e.hourlyRate * durationHours),
     }));
 
-    const totalCost = breakdown.reduce((sum, b) => sum + b.cost, 0);
+    const totalCost = breakdown.reduce(
+      (sum: number, b: { cost: number }) => sum + b.cost,
+      0,
+    );
 
     res.json({
       success: true,

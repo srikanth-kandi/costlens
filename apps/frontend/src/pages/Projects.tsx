@@ -27,7 +27,6 @@ import {
   getBudgetUtilizationColor,
   truncate,
 } from "@/utils/formatters";
-import type { CostSummary } from "@costlens/shared";
 
 const STATUS_STYLES: Record<
   string,
@@ -144,7 +143,7 @@ export default function Projects() {
                 radius={[4, 4, 0, 0]}
               />
               <Bar dataKey="cost" name="cost" radius={[4, 4, 0, 0]}>
-                {chartData.map((entry, index) => (
+                {chartData.map((_entry, index) => (
                   <Cell
                     key={index}
                     fill={
@@ -174,7 +173,7 @@ export default function Projects() {
                 </CardContent>
               </Card>
             ))
-          : projects.map((project, i) => {
+          : projects.map((project) => {
               const summary = costSummaries.find(
                 (c) => c.projectId === project.id,
               );
