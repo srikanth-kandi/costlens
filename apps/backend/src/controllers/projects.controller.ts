@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Anomaly, Meeting, Project } from "@prisma/client";
+import { Anomaly, Meeting, Prisma, Project } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../config/database.js";
 import {
@@ -309,12 +309,12 @@ export async function deleteProject(
       return;
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const projectMeetings = await tx.meeting.findMany({
         where: { projectId: id },
         select: { id: true },
       });
-      const meetingIds = projectMeetings.map((m) => m.id);
+      const meetingIds = projectMeetings.map((m: { id: number }) => m.id);
 
       if (meetingIds.length > 0) {
         await tx.anomaly.deleteMany({ where: { meetingId: { in: meetingIds } } });

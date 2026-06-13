@@ -218,7 +218,7 @@ export async function updateMeeting(
       payload.durationMinutes,
     );
 
-    const meeting = await prisma.$transaction(async (tx) => {
+    const meeting = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.meeting.update({
         where: { id },
         data: {
@@ -268,7 +268,7 @@ export async function deleteMeeting(
       return;
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.anomaly.deleteMany({ where: { meetingId: id } });
       await tx.meetingParticipant.deleteMany({ where: { meetingId: id } });
       await tx.meeting.delete({ where: { id } });
