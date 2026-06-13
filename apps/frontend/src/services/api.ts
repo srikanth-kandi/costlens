@@ -5,6 +5,7 @@ import type {
   Project,
   Anomaly,
   AttributionRequest,
+  AttributionPrefillResult,
   AttributionResult,
   CostCalculationRequest,
   CostCalculationResult,
@@ -81,6 +82,13 @@ export async function attributeMeeting(
   const { data } = await api.post<ApiResponse<AttributionResult>>(
     "/attribution",
     request,
+  );
+  return data.data;
+}
+
+export async function fetchAttributionPrefill(): Promise<AttributionPrefillResult> {
+  const { data } = await api.get<ApiResponse<AttributionPrefillResult>>(
+    "/attribution/prefill",
   );
   return data.data;
 }

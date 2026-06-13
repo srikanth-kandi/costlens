@@ -6,8 +6,9 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  WandSparkles,
 } from "lucide-react";
-import { useAttributeMeeting } from "@/hooks/useApi";
+import { useAttributeMeeting, useAttributionPrefill } from "@/hooks/useApi";
 import { mockProjects } from "@/data/mockData";
 import {
   Card,
@@ -88,7 +89,10 @@ export default function Attribution() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [attendeesInput, setAttendeesInput] = useState("");
+  const [prefillError, setPrefillError] = useState<string | null>(null);
   const { mutate, data: result, isPending, isError } = useAttributeMeeting();
+  const { mutate: prefillForm, isPending: isPrefilling } =
+    useAttributionPrefill();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +108,22 @@ export default function Attribution() {
     setTitle(example.title);
     setDescription(example.description);
     setAttendeesInput(example.attendees.join("\n"));
+  };
+
+  const handleAIPrefill = () => {
+    setPrefillError(null);
+    prefillForm(undefined, {
+      onSuccess: (prefill) => {
+        setTitle(prefill.title);
+        setDescription(prefill.description);
+        setAttendeesInput(prefill.attendees.join("\n"));
+      },
+      onError: () => {
+        setPrefillError(
+          "Could not generate a prefill right now. Please try again.",
+        );
+      },
+    });
   };
 
   return (
@@ -122,6 +142,37 @@ export default function Attribution() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 p-3 rounded-lg border border-blue-100 bg-blue-50/60">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-sm text-slate-700">
+                  Auto-generate a realistic meeting draft from your existing
+                  project data, then edit before final confirmation.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAIPrefill}
+                  disabled={isPrefilling || isPending}
+                  className="shrink-0"
+                >
+                  {isPrefilling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Prefilling...
+                    </>
+                  ) : (
+                    <>
+                      <WandSparkles className="w-4 h-4" />
+                      Prefill With AI
+                    </>
+                  )}
+                </Button>
+              </div>
+              {prefillError && (
+                <p className="text-xs text-red-600 mt-2">{prefillError}</p>
+              )}
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">

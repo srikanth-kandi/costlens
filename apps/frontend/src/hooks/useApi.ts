@@ -3,7 +3,11 @@ import { fetchDashboard } from "@/services/api";
 import { fetchMeetings } from "@/services/api";
 import { fetchProjects } from "@/services/api";
 import { fetchAnomalies } from "@/services/api";
-import { attributeMeeting, calculateCost } from "@/services/api";
+import {
+  attributeMeeting,
+  calculateCost,
+  fetchAttributionPrefill,
+} from "@/services/api";
 import type {
   MeetingFilters,
   AttributionRequest,
@@ -54,6 +58,12 @@ export function useAnomalies(filters?: {
 export function useAttributeMeeting() {
   return useMutation({
     mutationFn: (request: AttributionRequest) => attributeMeeting(request),
+  });
+}
+
+export function useAttributionPrefill() {
+  return useMutation({
+    mutationFn: fetchAttributionPrefill,
   });
 }
 

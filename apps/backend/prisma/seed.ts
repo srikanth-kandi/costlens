@@ -1,7 +1,13 @@
 import "dotenv/config";
-import { Employee, MeetingParticipant, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
-type MeetingParticipantWithEmployee = MeetingParticipant & { employee: Employee };
+type MeetingParticipantWithEmployee = {
+  meetingId: number;
+  employeeId: number;
+  employee: {
+    hourlyRate: number;
+  };
+};
 
 const prisma = new PrismaClient();
 

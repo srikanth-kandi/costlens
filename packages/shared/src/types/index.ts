@@ -150,6 +150,12 @@ export interface AttributionResult {
   reason: string;
 }
 
+export interface AttributionPrefillResult {
+  title: string;
+  description: string;
+  attendees: string[];
+}
+
 // ─── Cost Calculation Types ────────────────────────────────────────────────────
 
 export interface CostCalculationRequest {
@@ -166,4 +172,17 @@ export interface CostCalculationResult {
     cost: number;
   }[];
   durationHours: number;
+}
+
+// ─── Auth Types ───────────────────────────────────────────────────────────────
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface AuthSession {
+  user: AuthUser;
+  rememberMe: boolean;
 }

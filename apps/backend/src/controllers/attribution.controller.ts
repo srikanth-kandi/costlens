@@ -9,6 +9,7 @@ type AttributionProject = {
   name: string;
   code: string;
   description: string;
+  status?: string;
 };
 
 let genAI: GoogleGenerativeAI | null = null;
@@ -18,6 +19,85 @@ function getGenAI() {
     genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   }
   return genAI;
+}
+
+export async function getAttributionPrefill(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const [projects, employees] = await Promise.all([
+      prisma.project.findMany({
+        where: { status: { not: "completed" } },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          description: true,
+          status: true,
+        },
+      }),
+      prisma.employee.findMany({
+        select: { id: true, name: true, designation: true, department: true },
+        take: 25,
+      }),
+    ]);
+
+    const ai = getGenAI();
+
+    if (ai && projects.length > 0 && employees.length > 0) {
+      try {
+        const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const prefillPrompt = buildPrefillPrompt(projects, employees);
+
+        const result = await model.generateContent([{ text: prefillPrompt }]);
+        const text = result.response.text().trim();
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]) as {
+            title?: string;
+            description?: string;
+            attendees?: string[];
+          };
+
+          if (
+            parsed.title?.trim() &&
+            parsed.description?.trim() &&
+            Array.isArray(parsed.attendees)
+          ) {
+            const attendees = parsed.attendees
+              .map((name) => name.trim())
+              .filter(Boolean)
+              .slice(0, 8);
+
+            if (attendees.length > 0) {
+              res.json({
+                success: true,
+                data: {
+                  title: parsed.title.trim(),
+                  description: parsed.description.trim(),
+                  attendees,
+                },
+              });
+              return;
+            }
+          }
+        }
+      } catch (aiError) {
+        console.warn(
+          "Gemini prefill failed, using local fallback generation:",
+          aiError,
+        );
+      }
+    }
+
+    const fallback = buildPrefillFallback(projects, employees);
+    res.json({ success: true, data: fallback });
+  } catch (error) {
+    next(error);
+  }
 }
 
 export async function attributeMeeting(
@@ -180,6 +260,83 @@ ${projects.map((p) => `- ${p.name} (${p.code}): ${p.description}`).join("\n")}
 
 Classify this meeting into one of the available projects. Return JSON only.
 `.trim();
+}
+
+function buildPrefillPrompt(
+  projects: AttributionProject[],
+  employees: {
+    name: string;
+    designation: string;
+    department: string;
+  }[],
+): string {
+  return `You are helping generate a realistic prefill for a meeting attribution form in CostLens AI.
+
+Return ONLY valid JSON in this exact shape:
+{
+  "title": "",
+  "description": "",
+  "attendees": ["", "", ""]
+}
+
+Rules:
+- The meeting should be realistic and business-appropriate.
+- Title should be concise and project-oriented.
+- Description should be 1-2 sentences.
+- attendees must be between 3 and 6 names from the provided list.
+- Prefer active or at-risk projects.
+
+Projects:
+${projects.map((p) => `- ${p.name} (${p.code}) [${p.status ?? "active"}]: ${p.description}`).join("\n")}
+
+Employees:
+${employees.map((e) => `- ${e.name} (${e.designation}, ${e.department})`).join("\n")}`.trim();
+}
+
+function buildPrefillFallback(
+  projects: AttributionProject[],
+  employees: {
+    name: string;
+    designation: string;
+    department: string;
+  }[],
+): {
+  title: string;
+  description: string;
+  attendees: string[];
+} {
+  if (projects.length === 0 || employees.length === 0) {
+    return {
+      title: "Project Status Sync",
+      description:
+        "Weekly cross-functional review to align priorities, blockers, and delivery milestones.",
+      attendees: ["Team Lead", "Product Manager", "Engineer"],
+    };
+  }
+
+  const project = pickRandom(projects);
+  const sameDept = employees.filter((e) =>
+    project.name.toLowerCase().includes(e.department.toLowerCase()),
+  );
+  const attendeePool = sameDept.length >= 3 ? sameDept : employees;
+  const attendees = pickRandomN(attendeePool, Math.min(4, attendeePool.length)).map(
+    (e) => e.name,
+  );
+
+  return {
+    title: `${project.code} Delivery Planning Sync`,
+    description: `Planning session for ${project.name} to review priorities, dependencies, and execution timeline based on current project objectives.`,
+    attendees,
+  };
+}
+
+function pickRandom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function pickRandomN<T>(items: T[], count: number): T[] {
+  const shuffled = [...items].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
 }
 
 function ruleBasedAttribution(
