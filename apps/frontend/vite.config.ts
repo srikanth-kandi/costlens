@@ -13,6 +13,19 @@ export default defineConfig({
       ),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-core": ["react", "react-dom", "react-router-dom"],
+          "query-runtime": ["@tanstack/react-query"],
+          "charts-vendor": ["recharts"],
+          "icons-vendor": ["lucide-react"],
+          "ui-utils": ["class-variance-authority", "clsx", "tailwind-merge"],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

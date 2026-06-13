@@ -1,17 +1,30 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchDashboard } from "@/services/api";
-import { fetchMeetings } from "@/services/api";
-import { fetchProjects } from "@/services/api";
-import { fetchAnomalies } from "@/services/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   attributeMeeting,
   calculateCost,
+  createEmployee,
+  createMeeting,
+  createProject,
+  deleteEmployee,
+  deleteMeeting,
+  deleteProject,
+  fetchAnomalies,
   fetchAttributionPrefill,
+  fetchDashboard,
+  fetchEmployees,
+  fetchMeetings,
+  fetchProjects,
+  updateEmployee,
+  updateMeeting,
+  updateProject,
 } from "@/services/api";
 import type {
-  MeetingFilters,
   AttributionRequest,
   CostCalculationRequest,
+  EmployeeUpsertInput,
+  MeetingFilters,
+  MeetingUpsertInput,
+  ProjectUpsertInput,
 } from "@costlens/shared";
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -32,12 +45,93 @@ export function useMeetings(filters: MeetingFilters = {}) {
   });
 }
 
+export function useCreateMeeting() {
+  return useMutation({
+    mutationFn: (payload: MeetingUpsertInput) => createMeeting(payload),
+  });
+}
+
+export function useUpdateMeeting() {
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: MeetingUpsertInput;
+    }) => updateMeeting(id, payload),
+  });
+}
+
+export function useDeleteMeeting() {
+  return useMutation({
+    mutationFn: (id: number) => deleteMeeting(id),
+  });
+}
+
 // ─── Projects ─────────────────────────────────────────────────────────────────
 export function useProjects() {
   return useQuery({
     queryKey: ["projects"],
     queryFn: fetchProjects,
     staleTime: 30_000,
+  });
+}
+
+export function useCreateProject() {
+  return useMutation({
+    mutationFn: (payload: ProjectUpsertInput) => createProject(payload),
+  });
+}
+
+export function useUpdateProject() {
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: ProjectUpsertInput;
+    }) => updateProject(id, payload),
+  });
+}
+
+export function useDeleteProject() {
+  return useMutation({
+    mutationFn: (id: number) => deleteProject(id),
+  });
+}
+
+// ─── Employees ────────────────────────────────────────────────────────────────
+export function useEmployees(filters?: { search?: string; department?: string }) {
+  return useQuery({
+    queryKey: ["employees", filters],
+    queryFn: () => fetchEmployees(filters),
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateEmployee() {
+  return useMutation({
+    mutationFn: (payload: EmployeeUpsertInput) => createEmployee(payload),
+  });
+}
+
+export function useUpdateEmployee() {
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: EmployeeUpsertInput;
+    }) => updateEmployee(id, payload),
+  });
+}
+
+export function useDeleteEmployee() {
+  return useMutation({
+    mutationFn: (id: number) => deleteEmployee(id),
   });
 }
 

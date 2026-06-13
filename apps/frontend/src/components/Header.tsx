@@ -22,6 +22,10 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
     title: "Anomaly Detection Center",
     subtitle: "Monitor cost anomalies and budget alerts",
   },
+  "/admin/hr": {
+    title: "HR Admin",
+    subtitle: "Manage employee records and hourly rates",
+  },
 };
 
 export default function Header() {

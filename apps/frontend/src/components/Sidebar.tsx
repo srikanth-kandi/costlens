@@ -6,6 +6,7 @@ import {
   FolderKanban,
   AlertTriangle,
   DollarSign,
+  UsersRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ const navItems = [
   },
   { to: "/projects", label: "Projects", icon: FolderKanban, end: false },
   { to: "/anomalies", label: "Anomalies", icon: AlertTriangle, end: false },
+  { to: "/admin/hr", label: "HR Admin", icon: UsersRound, end: false },
 ];
 
 export default function Sidebar() {

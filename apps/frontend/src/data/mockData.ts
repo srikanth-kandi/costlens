@@ -11,7 +11,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 1,
     name: "Arjun Sharma",
-    email: "arjun.sharma@costlens.io",
+    email: "arjun.sharma@costlens.srikanthkandi.dev",
     designation: "Engineering Manager",
     department: "Engineering",
     hourlyRate: 3500,
@@ -19,7 +19,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 2,
     name: "Priya Nair",
-    email: "priya.nair@costlens.io",
+    email: "priya.nair@costlens.srikanthkandi.dev",
     designation: "Senior Software Engineer",
     department: "Engineering",
     hourlyRate: 2800,
@@ -27,7 +27,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 3,
     name: "Rahul Verma",
-    email: "rahul.verma@costlens.io",
+    email: "rahul.verma@costlens.srikanthkandi.dev",
     designation: "Software Engineer",
     department: "Engineering",
     hourlyRate: 1800,
@@ -35,7 +35,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 4,
     name: "Sneha Reddy",
-    email: "sneha.reddy@costlens.io",
+    email: "sneha.reddy@costlens.srikanthkandi.dev",
     designation: "Product Manager",
     department: "Product",
     hourlyRate: 3000,
@@ -43,7 +43,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 5,
     name: "Vikram Singh",
-    email: "vikram.singh@costlens.io",
+    email: "vikram.singh@costlens.srikanthkandi.dev",
     designation: "Senior Product Manager",
     department: "Product",
     hourlyRate: 3800,
@@ -51,7 +51,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 6,
     name: "Ananya Gupta",
-    email: "ananya.gupta@costlens.io",
+    email: "ananya.gupta@costlens.srikanthkandi.dev",
     designation: "UX Designer",
     department: "Design",
     hourlyRate: 2200,
@@ -59,7 +59,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 7,
     name: "Kiran Patel",
-    email: "kiran.patel@costlens.io",
+    email: "kiran.patel@costlens.srikanthkandi.dev",
     designation: "Senior UX Designer",
     department: "Design",
     hourlyRate: 2600,
@@ -67,7 +67,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 8,
     name: "Deepak Kumar",
-    email: "deepak.kumar@costlens.io",
+    email: "deepak.kumar@costlens.srikanthkandi.dev",
     designation: "Data Scientist",
     department: "Data Science",
     hourlyRate: 3200,
@@ -75,7 +75,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 9,
     name: "Meera Iyer",
-    email: "meera.iyer@costlens.io",
+    email: "meera.iyer@costlens.srikanthkandi.dev",
     designation: "Data Analyst",
     department: "Data Science",
     hourlyRate: 2400,
@@ -83,7 +83,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 10,
     name: "Rohit Joshi",
-    email: "rohit.joshi@costlens.io",
+    email: "rohit.joshi@costlens.srikanthkandi.dev",
     designation: "DevOps Engineer",
     department: "Engineering",
     hourlyRate: 2600,
@@ -91,7 +91,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 11,
     name: "Kavitha Menon",
-    email: "kavitha.menon@costlens.io",
+    email: "kavitha.menon@costlens.srikanthkandi.dev",
     designation: "Marketing Lead",
     department: "Marketing",
     hourlyRate: 2800,
@@ -99,7 +99,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 12,
     name: "Sanjay Bhat",
-    email: "sanjay.bhat@costlens.io",
+    email: "sanjay.bhat@costlens.srikanthkandi.dev",
     designation: "Marketing Analyst",
     department: "Marketing",
     hourlyRate: 1800,
@@ -107,7 +107,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 13,
     name: "Lakshmi Devi",
-    email: "lakshmi.devi@costlens.io",
+    email: "lakshmi.devi@costlens.srikanthkandi.dev",
     designation: "Finance Manager",
     department: "Finance",
     hourlyRate: 3200,
@@ -115,7 +115,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 14,
     name: "Ajay Mehta",
-    email: "ajay.mehta@costlens.io",
+    email: "ajay.mehta@costlens.srikanthkandi.dev",
     designation: "Financial Analyst",
     department: "Finance",
     hourlyRate: 2200,
@@ -123,7 +123,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 15,
     name: "Pooja Agarwal",
-    email: "pooja.agarwal@costlens.io",
+    email: "pooja.agarwal@costlens.srikanthkandi.dev",
     designation: "HR Manager",
     department: "HR",
     hourlyRate: 2600,
@@ -131,7 +131,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 16,
     name: "Nitin Chopra",
-    email: "nitin.chopra@costlens.io",
+    email: "nitin.chopra@costlens.srikanthkandi.dev",
     designation: "Operations Manager",
     department: "Operations",
     hourlyRate: 2800,
@@ -139,7 +139,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 17,
     name: "Sunita Rao",
-    email: "sunita.rao@costlens.io",
+    email: "sunita.rao@costlens.srikanthkandi.dev",
     designation: "Software Engineer",
     department: "Engineering",
     hourlyRate: 1800,
@@ -147,7 +147,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 18,
     name: "Abhishek Das",
-    email: "abhishek.das@costlens.io",
+    email: "abhishek.das@costlens.srikanthkandi.dev",
     designation: "Senior Software Engineer",
     department: "Engineering",
     hourlyRate: 2600,
@@ -155,7 +155,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 19,
     name: "Rekha Pillai",
-    email: "rekha.pillai@costlens.io",
+    email: "rekha.pillai@costlens.srikanthkandi.dev",
     designation: "Product Designer",
     department: "Design",
     hourlyRate: 2000,
@@ -163,7 +163,7 @@ export const mockEmployees: Employee[] = [
   {
     id: 20,
     name: "Manish Tiwari",
-    email: "manish.tiwari@costlens.io",
+    email: "manish.tiwari@costlens.srikanthkandi.dev",
     designation: "QA Engineer",
     department: "Engineering",
     hourlyRate: 1600,
@@ -572,3 +572,4 @@ export const mockDashboardData: DashboardData = {
   recentMeetings: mockMeetings.slice(0, 5),
   recentAnomalies: mockAnomalies.slice(0, 5),
 };
+

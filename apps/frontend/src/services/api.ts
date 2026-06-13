@@ -3,10 +3,14 @@ import type {
   DashboardData,
   Meeting,
   Project,
+  ProjectUpsertInput,
+  Employee,
+  EmployeeUpsertInput,
   Anomaly,
   AttributionRequest,
   AttributionPrefillResult,
   AttributionResult,
+  MeetingUpsertInput,
   CostCalculationRequest,
   CostCalculationResult,
   MeetingFilters,
@@ -32,8 +36,69 @@ export async function fetchProjects(): Promise<Project[]> {
   return data.data;
 }
 
+// ─── Employees (HR Admin) ────────────────────────────────────────────────────
+export async function fetchEmployees(filters?: {
+  search?: string;
+  department?: string;
+}): Promise<Employee[]> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.department) params.set("department", filters.department);
+
+  const query = params.toString();
+  const { data } = await api.get<ApiResponse<Employee[]>>(
+    `/employees${query ? `?${query}` : ""}`,
+  );
+  return data.data;
+}
+
+export async function createEmployee(
+  payload: EmployeeUpsertInput,
+): Promise<Employee> {
+  const { data } = await api.post<ApiResponse<Employee>>("/employees", payload);
+  return data.data;
+}
+
+export async function updateEmployee(
+  id: number,
+  payload: EmployeeUpsertInput,
+): Promise<Employee> {
+  const { data } = await api.put<ApiResponse<Employee>>(
+    `/employees/${id}`,
+    payload,
+  );
+  return data.data;
+}
+
+export async function deleteEmployee(id: number): Promise<{ id: number }> {
+  const { data } = await api.delete<ApiResponse<{ id: number }>>(
+    `/employees/${id}`,
+  );
+  return data.data;
+}
+
 export async function fetchProjectById(id: number): Promise<Project> {
   const { data } = await api.get<ApiResponse<Project>>(`/projects/${id}`);
+  return data.data;
+}
+
+export async function createProject(payload: ProjectUpsertInput): Promise<Project> {
+  const { data } = await api.post<ApiResponse<Project>>("/projects", payload);
+  return data.data;
+}
+
+export async function updateProject(
+  id: number,
+  payload: ProjectUpsertInput,
+): Promise<Project> {
+  const { data } = await api.put<ApiResponse<Project>>(`/projects/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteProject(id: number): Promise<{ id: number }> {
+  const { data } = await api.delete<ApiResponse<{ id: number }>>(
+    `/projects/${id}`,
+  );
   return data.data;
 }
 
@@ -57,6 +122,26 @@ export async function fetchMeetings(
     page: data.page,
     pageSize: data.pageSize,
   };
+}
+
+export async function createMeeting(payload: MeetingUpsertInput): Promise<Meeting> {
+  const { data } = await api.post<ApiResponse<Meeting>>("/meetings", payload);
+  return data.data;
+}
+
+export async function updateMeeting(
+  id: number,
+  payload: MeetingUpsertInput,
+): Promise<Meeting> {
+  const { data } = await api.put<ApiResponse<Meeting>>(`/meetings/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteMeeting(id: number): Promise<{ id: number }> {
+  const { data } = await api.delete<ApiResponse<{ id: number }>>(
+    `/meetings/${id}`,
+  );
+  return data.data;
 }
 
 // ─── Anomalies ────────────────────────────────────────────────────────────────

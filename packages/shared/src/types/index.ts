@@ -10,6 +10,15 @@ export interface Employee {
   avatarUrl?: string;
 }
 
+export interface EmployeeUpsertInput {
+  name: string;
+  email: string;
+  designation: string;
+  department: string;
+  hourlyRate: number;
+  avatarUrl?: string | null;
+}
+
 export interface Project {
   id: number;
   name: string;
@@ -22,7 +31,24 @@ export interface Project {
   endDate?: string;
 }
 
-export type ProjectStatus = "active" | "on-hold" | "completed" | "at-risk";
+export type ProjectStatus =
+  | "active"
+  | "on-hold"
+  | "completed"
+  | "at-risk"
+  | "on_hold"
+  | "at_risk";
+
+export interface ProjectUpsertInput {
+  name: string;
+  code: string;
+  description: string;
+  budget: number;
+  status: ProjectStatus;
+  teamSize?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
 
 export interface Meeting {
   id: number;
@@ -35,6 +61,16 @@ export interface Meeting {
   confidenceScore: number;
   participants?: MeetingParticipant[];
   cost?: number;
+}
+
+export interface MeetingUpsertInput {
+  title: string;
+  description: string;
+  durationMinutes: number;
+  meetingDate: string;
+  projectId?: number | null;
+  confidenceScore?: number;
+  participantEmployeeIds: number[];
 }
 
 export interface MeetingParticipant {
