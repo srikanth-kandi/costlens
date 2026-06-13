@@ -27,22 +27,43 @@ export async function getAttributionPrefill(
   next: NextFunction,
 ) {
   try {
-    const [projects, employees] = await Promise.all([
-      prisma.project.findMany({
-        where: { status: { not: "completed" } },
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          description: true,
-          status: true,
+    let projects = [] as AttributionProject[];
+    let employees: { name: string; designation: string; department: string }[] = [];
+
+    try {
+      [projects, employees] = await Promise.all([
+        prisma.project.findMany({
+          where: { status: { not: "completed" } },
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            description: true,
+            status: true,
+          },
+        }) as Promise<AttributionProject[]>,
+        prisma.employee.findMany({
+          select: { id: true, name: true, designation: true, department: true },
+          take: 25,
+        }),
+      ]);
+    } catch (dbError) {
+      console.error(
+        "❌ Database query failed in prefill:",
+        dbError instanceof Error ? dbError.message : String(dbError),
+      );
+      // Return default fallback if database fails
+      res.json({
+        success: true,
+        data: {
+          title: "Project Status Sync",
+          description:
+            "Weekly cross-functional review to align priorities, blockers, and delivery milestones.",
+          attendees: ["Team Lead", "Product Manager", "Engineer"],
         },
-      }),
-      prisma.employee.findMany({
-        select: { id: true, name: true, designation: true, department: true },
-        take: 25,
-      }),
-    ]);
+      });
+      return;
+    }
 
     const ai = getGenAI();
 
@@ -87,15 +108,18 @@ export async function getAttributionPrefill(
         }
       } catch (aiError) {
         console.warn(
-          "Gemini prefill failed, using local fallback generation:",
-          aiError,
+          "Gemini prefill generation failed, using local fallback:",
+          aiError instanceof Error ? aiError.message : String(aiError),
         );
       }
+    } else if (!ai) {
+      console.info("GEMINI_API_KEY not set; using local fallback for prefill");
     }
 
     const fallback = buildPrefillFallback(projects, employees);
     res.json({ success: true, data: fallback });
   } catch (error) {
+    console.error("❌ getAttributionPrefill failed:", error);
     next(error);
   }
 }
