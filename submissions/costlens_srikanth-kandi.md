@@ -16,7 +16,7 @@ Choose one:
 ## Attendee Details
 
 **GitHub Username:** Srikanth-Kandi
-**LinkedIn Profile:** PASTE_LINK_HERE
+**LinkedIn Profile:** https://www.linkedin.com/in/srikanthkandi
 **GitHub Project Repository:** https://github.com/Srikanth-Kandi/costlens
 
 ---
@@ -24,10 +24,10 @@ Choose one:
 ## Checklist
 
 - [x] I have created my submission file inside the `submissions/` folder.
-- [ ] My submission file follows this naming format: `projectname_attendeeName.md`.
+- [x] My submission file follows this naming format: `projectname_attendeeName.md`.
 - [x] I have used the `SUBMISSION_TEMPLATE.md` format.
 - [x] I have added my GitHub project repository link.
-- [ ] I have added my LinkedIn profile link.
+- [x] I have added my LinkedIn profile link.
 - [x] I have added my GitHub username.
 - [x] My project repository is public.
 - [x] I have not added API keys, passwords, tokens, or private credentials.
@@ -85,7 +85,6 @@ CostLens AI is an HR Cost Intelligence platform that helps organizations track a
 
 ## What Is In Progress
 
-- LinkedIn profile link update in this submission file.
 - Optional refinements for additional reporting and forecasting.
 ---
 
